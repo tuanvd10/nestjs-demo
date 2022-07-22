@@ -8,8 +8,19 @@ import { AuthDto } from "./dto";
 export class AuthService {
     constructor(private prisma: PrismaService) {}
     test = () => console.log(process.env.DATABASE_URL);
-    signin() {
-        return createHttpResonse(200, "SUCCESS", "signup function");
+    async signin(dto: AuthDto) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: dto.email,
+            },
+        });
+        if (!user || user.hash !== dto.password)
+            throw new ForbiddenException({
+                error_code: 403000,
+                message: "Creditenal incorrect",
+            });
+        delete user.hash;
+        return createHttpResonse(200, "SUCCESS", user);
     }
     async signup(dto: AuthDto) {
         //hash PW

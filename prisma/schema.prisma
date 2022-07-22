@@ -16,6 +16,8 @@ model User{
   hash  String
   firstName String?
   lastName String?
+  age Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
