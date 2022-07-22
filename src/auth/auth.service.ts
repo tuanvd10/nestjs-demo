@@ -1,4 +1,6 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { createHttpResonse } from "src/common/HttpResponse";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -6,7 +8,11 @@ import { AuthDto } from "./dto";
 
 @Injectable({})
 export class AuthService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService,
+        private configService: ConfigService
+    ) {}
     test = () => console.log(process.env.DATABASE_URL);
     async signin(dto: AuthDto) {
         const user = await this.prisma.user.findUnique({
@@ -20,7 +26,9 @@ export class AuthService {
                 message: "Creditenal incorrect",
             });
         delete user.hash;
-        return createHttpResonse(200, "SUCCESS", user);
+        return createHttpResonse(200, "SUCCESS", {
+            access_token: this.signToken(user.id, user.email),
+        });
     }
     async signup(dto: AuthDto) {
         //hash PW
@@ -46,5 +54,16 @@ export class AuthService {
                 }
             }
         }
+    }
+    signToken(userId: number, email: string): string {
+        const payload = {
+            id: userId,
+            email: email,
+        };
+        console.log(payload);
+        return this.jwtService.sign(payload, {
+            expiresIn: "15m",
+            secret: this.configService.get("JWT_SECRET"),
+        });
     }
 }
