@@ -1,11 +1,9 @@
 const createHttpResonse = (code: number, message: string, data: any) => {
     return {
-        code: code,
+        statusCode: code,
         message: message,
-        data: data
-    }
-}
+        data: data,
+    };
+};
 
-export {
-    createHttpResonse
-}
+export { createHttpResonse };
